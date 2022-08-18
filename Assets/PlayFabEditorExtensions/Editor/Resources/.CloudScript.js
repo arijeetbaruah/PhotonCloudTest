@@ -45,9 +45,10 @@ handlers.helloWorld = function (args, context) {
     // take a message string and an optional object.
     log.info(message);
     var inputValue = null;
-    if (args && args.inputValue)
+    if (args && args.inputValue) {
         inputValue = args.inputValue;
-    log.debug("helloWorld:", { input: args.inputValue });
+        log.debug("helloWorld:", { input: args.inputValue });
+    }
 
     // The value you return from a Cloud Script function is passed back 
     // to the game client in the ExecuteCloudScript API response, along with any log statements
@@ -57,6 +58,19 @@ handlers.helloWorld = function (args, context) {
     // (https://api.playfab.com/playstream/docs/PlayStreamEventModels/player/player_executed_cloudscript)
     return { messageValue: message };
 };
+
+handlers.AcceptCommonGroupUser = function (args, context) {
+    var group = { Id: args.GroupId, Type: "group" };
+    var titlePlayerAccount = server.GetUserAccountInfo({ PlayFabId: args.currentPlayerId }).UserInfo.TitleInfo.TitlePlayerAccount;
+    log.info(titlePlayerAccount);
+    entity.CreateRole({ Group: group, RoleId: "hidden", RoleName: "Hidden" });
+    entity.ApplyToGroup({ Group: group, Entity: titlePlayerAccount });
+    var result2 = entity.AcceptGroupApplication({ Group: group, Entity: titlePlayerAccount });
+    entity.AddMembers({ Group: group, Members: [titlePlayerAccount], RoleId: "hidden" });
+    entity.AddMembers({ Group: group, Members: [titlePlayerAccount], RoleId: "admins" });
+
+    return { addMember: result2 }
+}
 
 // This is a simple example of making a PlayFab server API call
 handlers.makeAPICall = function (args, context) {
